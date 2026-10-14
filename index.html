@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CBT Informatika SMA Nugraha</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<script>
+  tailwind.config = { theme: { extend: { fontFamily: { sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'] } } } };
+</script>
+<style>
+  :root{ --ink:#0F172A; --ink2:#1E293B; --indigo:#4F46E5; --green:#10B981; --red:#EF4444; }
+  html,body{height:100%}
+  body{font-family:'Plus Jakarta Sans',Inter,system-ui,sans-serif;background:var(--ink);color:#E2E8F0;overflow-x:hidden}
+  #app{min-height:100%}
+  body.in-exam{height:100dvh;overflow:hidden;overscroll-behavior:none}
+  body.in-exam #app{height:100dvh}
+  /* latar: grid halus + pendar */
+  .bg-scene{position:fixed;inset:0;z-index:-1;background:
+    radial-gradient(900px 500px at 15% -10%,rgba(79,70,229,.28),transparent 60%),
+    radial-gradient(700px 420px at 105% 110%,rgba(16,185,129,.16),transparent 60%),var(--ink)}
+  .bg-scene::after{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(148,163,184,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(148,163,184,.06) 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(ellipse at 50% 30%,#000 30%,transparent 75%);-webkit-mask-image:radial-gradient(ellipse at 50% 30%,#000 30%,transparent 75%)}
+  .glass{background:rgba(30,41,59,.6);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(148,163,184,.14)}
+  /* border pendar */
+  .glow{position:relative}
+  .glow::before{content:'';position:absolute;inset:-1px;border-radius:inherit;padding:1px;background:linear-gradient(135deg,var(--g1,#4F46E5),transparent 45%,var(--g2,#10B981));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:.55;transition:opacity .3s;pointer-events:none}
+  .glow:hover::before{opacity:1}
+  .tilt{transform-style:preserve-3d;transition:transform .15s ease-out,box-shadow .3s}
+  .tilt:hover{box-shadow:0 30px 80px -20px var(--shadow,rgba(79,70,229,.5))}
+  /* tombol + ripple */
+  .btn{position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;gap:.5rem;font-weight:700;border-radius:.85rem;padding:.8rem 1.25rem;transition:transform .15s,filter .2s,background .2s;cursor:pointer;user-select:none}
+  .btn:hover{filter:brightness(1.1)} .btn:active{transform:scale(.98)}
+  .btn:disabled{opacity:.5;cursor:not-allowed;filter:none}
+  .btn-primary{background:var(--indigo);color:#fff;box-shadow:0 8px 28px -10px rgba(79,70,229,.8)}
+  .btn-green{background:var(--green);color:#052e22;box-shadow:0 8px 28px -10px rgba(16,185,129,.7)}
+  .btn-red{background:var(--red);color:#fff;box-shadow:0 8px 28px -10px rgba(239,68,68,.7)}
+  .btn-ghost{background:rgba(148,163,184,.12);color:#E2E8F0}
+  .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.35);transform:scale(0);animation:rip .6s linear;pointer-events:none}
+  @keyframes rip{to{transform:scale(4);opacity:0}}
+  .input{width:100%;background:rgba(15,23,42,.7);border:1px solid rgba(148,163,184,.25);border-radius:.8rem;padding:.75rem 1rem;color:#F1F5F9;outline:none;transition:border-color .2s,box-shadow .2s}
+  .input:focus{border-color:var(--indigo);box-shadow:0 0 0 3px rgba(79,70,229,.3)}
+  .input[readonly]{opacity:.7}
+  select.input option{background:#0F172A}
+  label.lbl{display:block;font-size:.8rem;font-weight:600;color:#94A3B8;margin-bottom:.35rem}
+  /* status */
+  .pulse{position:relative;display:inline-block;width:.6rem;height:.6rem;border-radius:50%;background:var(--c,#10B981)}
+  .pulse::after{content:'';position:absolute;inset:0;border-radius:50%;background:var(--c,#10B981);animation:ping 1.6s cubic-bezier(0,0,.2,1) infinite}
+  @keyframes ping{75%,100%{transform:scale(2.8);opacity:0}}
+  .blink-red{animation:blink 1s steps(2,start) infinite;color:#fff;background:var(--red)!important}
+  @keyframes blink{50%{opacity:.35}}
+  .shake{animation:shake .5s}
+  @keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+  .enter{animation:enter .45s cubic-bezier(.2,.8,.2,1) both}
+  @keyframes enter{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+  .modal-in{animation:modal .25s cubic-bezier(.2,.9,.3,1.2) both}
+  @keyframes modal{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
+  .spin{animation:spin .8s linear infinite} @keyframes spin{to{transform:rotate(360deg)}}
+  .danger-glow{box-shadow:0 0 0 1px rgba(239,68,68,.6),0 0 60px -5px rgba(239,68,68,.55)}
+  /* tabel */
+  table.tbl{width:100%;border-collapse:collapse;font-size:.85rem}
+  .tbl th{text-align:left;font-weight:600;color:#94A3B8;padding:.65rem .75rem;border-bottom:1px solid rgba(148,163,184,.18);white-space:nowrap}
+  .tbl td{padding:.65rem .75rem;border-bottom:1px solid rgba(148,163,184,.08);vertical-align:middle}
+  .tbl tr:hover td{background:rgba(148,163,184,.05)}
+  .badge{display:inline-flex;align-items:center;gap:.35rem;padding:.2rem .6rem;border-radius:999px;font-size:.72rem;font-weight:700}
+  .b-green{background:rgba(16,185,129,.15);color:#34D399} .b-red{background:rgba(239,68,68,.15);color:#F87171}
+  .b-slate{background:rgba(148,163,184,.15);color:#CBD5E1} .b-indigo{background:rgba(79,70,229,.2);color:#A5B4FC}
+  .noselect{-webkit-user-select:none;user-select:none}
+  ::-webkit-scrollbar{width:10px;height:10px} ::-webkit-scrollbar-thumb{background:#334155;border-radius:8px}
+  @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div class="bg-scene"></div>
+<div id="app"></div>
+<div id="toasts" class="fixed top-4 right-4 z-[90] flex flex-col gap-2 pointer-events-none"></div>
+<div id="layer" class="fixed inset-0 z-[80] pointer-events-none"></div>
+
+<script>
+/* =====================================================================
+   KONFIGURASI
+   ===================================================================== */
+const CONFIG = {
+  API_URL: 'https://script.google.com/macros/s/AKfycbyu6qXFncizzS1QshefokWwSmuAbkQXgFwAtC1mkvYcDmLOVRsGEvHhSVwEP2-kz0Fz/exec',            // <-- tempel URL Web App Apps Script (…/exec). Kosong = MODE DEMO (data lokal)
+  HEARTBEAT_MS: 20000,    // sinkron status ujian ke server
+  LOCKED_POLL_MS: 8000,   // saat terkunci: cek apakah proktor membuka kunci
+  MONITOR_MS: 8000,       // refresh monitoring admin
+  ALLOW_MOBILE: true      // true = HP/tablet boleh ujian (tanpa layar penuh jika tidak didukung). false = wajib laptop/PC
+};
+
+/* =====================================================================
+   UTIL
+   ===================================================================== */
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const fmtTime = s => { s = Math.max(0, Math.floor(s)); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return (h ? h + ':' : '') + String(m).padStart(2, '0') + ':' + String(x).padStart(2, '0'); };
+const fmtClock = ms => ms ? new Date(ms).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '-';
+const FSE = document.documentElement;
+const FS_OK = !!(FSE.requestFullscreen || FSE.webkitRequestFullscreen);
+const MOBILE = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Mac/i.test(navigator.platform));
+const inFS = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+const reqFS = () => { try { const f = FSE.requestFullscreen || FSE.webkitRequestFullscreen; if (!f) return Promise.reject(new Error('nofs')); const r = f.call(FSE, { navigationUI: 'hide' }); return r && r.then ? r : Promise.resolve(); } catch (e) { return Promise.reject(e); } };
+const exitFS = () => { try { const f = document.exitFullscreen || document.webkitExitFullscreen; const r = f && f.call(document); return r && r.catch ? r : Promise.resolve(); } catch (e) { return Promise.resolve(); } };
+const icons = () => window.lucide && lucide.createIcons();
+const ic = (n, c = 'w-4 h-4') => `<i data-lucide="${n}" class="${c}"></i>`;
+
+document.addEventListener('click', e => {           // ripple
+  const b = e.target.closest('.btn'); if (!b || b.disabled) return;
+  const r = b.getBoundingClientRect(), d = Math.max(r.width, r.height), s = document.createElement('span');
+  s.className = 'ripple'; s.style.cssText = `width:${d}px;height:${d}px;left:${e.clientX - r.left - d / 2}px;top:${e.clientY - r.top - d / 2}px`;
+  b.appendChild(s); setTimeout(() => s.remove(), 650);
+});
+
+function toast(msg, type = 'info', ms = 3500) {
+  const c = { info: 'border-indigo-500/60 text-indigo-100', ok: 'border-emerald-500/60 text-emerald-100', err: 'border-red-500/70 text-red-100' }[type];
+  const i = { info: 'info', ok: 'check-circle-2', err: 'alert-triangle' }[type];
+  const el = document.createElement('div');
+  el.className = `glass enter pointer-events-auto flex items-start gap-3 rounded-xl border px-4 py-3 text-sm max-w-sm shadow-2xl ${c}`;
+  el.innerHTML = `${ic(i, 'w-5 h-5 shrink-0 mt-0.5')}<div>${esc(msg)}</div>`;
+  $('#toasts').appendChild(el); icons(); setTimeout(() => el.remove(), ms);
+}
+
+/** Modal generik. actions: [{label, cls, fn}] */
+function modal({ title, body, icon = 'info', tone = 'indigo', actions = [], danger = false }) {
+  const ov = document.createElement('div');
+  ov.className = 'fixed inset-0 z-[85] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm pointer-events-auto';
+  const col = { indigo: 'text-indigo-300 bg-indigo-500/15', red: 'text-red-300 bg-red-500/15', green: 'text-emerald-300 bg-emerald-500/15' }[tone];
+  ov.innerHTML = `<div class="glass glow modal-in w-full max-w-md rounded-2xl p-6 ${danger ? 'danger-glow shake' : ''}" style="${danger ? '--g1:#EF4444;--g2:#EF4444' : ''}">
+    <div class="flex items-start gap-4"><div class="grid h-12 w-12 shrink-0 place-items-center rounded-xl ${col}">${ic(icon, 'w-6 h-6')}</div>
+    <div class="min-w-0"><h3 class="text-lg font-bold text-white">${esc(title)}</h3><div class="mt-1 text-sm leading-relaxed text-slate-300">${body}</div></div></div>
+    <div class="mt-6 flex flex-wrap justify-end gap-2" data-acts></div></div>`;
+  const close = () => ov.remove();
+  actions.forEach(a => {
+    const b = document.createElement('button'); b.className = 'btn ' + (a.cls || 'btn-ghost'); b.textContent = a.label;
+    b.onclick = () => { if (a.fn) a.fn(); close(); }; $('[data-acts]', ov).appendChild(b);
+  });
+  ($('#layer')).appendChild(ov); icons(); return close;
+}
+
+/* =====================================================================
+   API  (Google Apps Script)  +  MODE DEMO
+   ===================================================================== */
+const S = { view: 'gate', token: null, user: null, role: null, schools: [], exams: [], online: true };
+const timers = [];
+const clearTimers = () => { while (timers.length) clearInterval(timers.pop()); };
+
+async function api(action, payload = {}) {
+  if (!CONFIG.API_URL) return mockApi(action, payload);
+  const res = await fetch(CONFIG.API_URL, {
+    method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },   // text/plain => tanpa preflight CORS
+    body: JSON.stringify({ action, token: S.token, ...payload })
+  });
+  const data = await res.json();
+  if (!data.ok) { if (/login ulang|Token tidak ada/i.test(data.error || '')) { forceLogout('Sesi login berakhir.'); } throw new Error(data.error || 'Terjadi kesalahan.'); }
+  return data;
+}
+
+function saveAuth() { sessionStorage.setItem('cbt_auth', JSON.stringify({ token: S.token, user: S.user, role: S.role })); }
+function logout(silent) {
+  cleanupExam(); clearTimers(); sessionStorage.clear();
+  S.token = S.user = S.role = null; document.body.classList.remove('in-exam');
+  if (inFS()) exitFS().catch(() => {});
+  $('#layer').innerHTML = ''; go('gate'); if (!silent) toast('Anda telah keluar.', 'ok');
+}
+function forceLogout(msg) { logout(true); toast(msg, 'err'); }
+
+/* =====================================================================
+   ROUTER
+   ===================================================================== */
+const app = $('#app');
+function go(view) { clearTimers(); S.view = view; ({ gate: viewGate, siswaLogin: viewSiswaLogin, adminLogin: viewAdminLogin, siswaDash: viewSiswaDash, admin: viewAdmin })[view](); icons(); }
+
+function brand(sub = '') {
+  return `<div class="flex items-center gap-3"><div class="grid h-11 w-11 place-items-center rounded-xl bg-indigo-600 shadow-lg shadow-indigo-600/40">${ic('shield-check', 'w-6 h-6 text-white')}</div>
+  <div><div class="text-base font-extrabold leading-tight tracking-tight text-white">CBT INFORMATIKA</div><div class="text-xs font-semibold text-slate-400">SMA NUGRAHA${sub ? ' · ' + sub : ''}</div></div></div>`;
+}
+function demoBanner() { return CONFIG.API_URL ? '' : `<div class="mx-auto mb-4 max-w-md rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-center text-xs text-amber-200">MODE DEMO — data lokal. Siswa: <b>1001</b> / <b>123456</b> · Admin: <b>admin</b> / <b>admin</b>. Isi <code>CONFIG.API_URL</code> untuk terhubung ke Google Sheets.</div>`; }
+
+/* =====================================================================
+   A. GATE
+   ===================================================================== */
+function viewGate() {
+  document.body.classList.remove('in-exam');
+  app.innerHTML = `<div class="mx-auto flex min-h-screen max-w-5xl flex-col justify-center px-5 py-10">
+    <div class="enter mb-10 flex flex-col items-center text-center">
+      <div class="grid h-16 w-16 place-items-center rounded-2xl bg-indigo-600 shadow-2xl shadow-indigo-600/50">${ic('shield-check', 'w-9 h-9 text-white')}</div>
+      <h1 class="mt-5 text-3xl font-extrabold tracking-tight text-white sm:text-5xl">CBT INFORMATIKA</h1>
+      <p class="mt-1 text-lg font-semibold text-indigo-300">SMA NUGRAHA</p>
+      <p class="mt-3 max-w-md text-sm text-slate-400">Pilih portal untuk masuk. Ujian berjalan dalam mode layar penuh dan diawasi sistem.</p>
+    </div>
+    ${demoBanner()}
+    <div class="grid gap-6 sm:grid-cols-2" style="perspective:1000px">
+      <button data-go="siswaLogin" class="glass glow tilt group rounded-3xl p-8 text-left" style="--shadow:rgba(79,70,229,.5)">
+        <div class="mb-6 grid h-14 w-14 place-items-center rounded-2xl bg-indigo-500/20 text-indigo-300 transition group-hover:scale-110">${ic('graduation-cap', 'w-7 h-7')}</div>
+        <h2 class="text-2xl font-bold text-white">Portal Siswa</h2>
+        <p class="mt-2 text-sm text-slate-400">Masuk dengan nomor peserta untuk mengerjakan ujian.</p>
+        <div class="mt-6 flex items-center gap-2 text-sm font-semibold text-indigo-300">Masuk sebagai siswa ${ic('arrow-right', 'w-4 h-4 transition group-hover:translate-x-1')}</div>
+      </button>
+      <button data-go="adminLogin" class="glass glow tilt group rounded-3xl p-8 text-left" style="--g1:#10B981;--g2:#4F46E5;--shadow:rgba(16,185,129,.4)">
+        <div class="mb-6 grid h-14 w-14 place-items-center rounded-2xl bg-emerald-500/20 text-emerald-300 transition group-hover:scale-110">${ic('layout-dashboard', 'w-7 h-7')}</div>
+        <h2 class="text-2xl font-bold text-white">Portal Guru / Admin</h2>
+        <p class="mt-2 text-sm text-slate-400">Atur ujian, pantau peserta, dan buka kunci secara langsung.</p>
+        <div class="mt-6 flex items-center gap-2 text-sm font-semibold text-emerald-300">Masuk sebagai guru ${ic('arrow-right', 'w-4 h-4 transition group-hover:translate-x-1')}</div>
+      </button>
+    </div></div>`;
+  app.querySelectorAll('[data-go]').forEach(b => b.onclick = () => go(b.dataset.go));
+  app.querySelectorAll('.tilt').forEach(el => {            // efek 3D
+    el.onmousemove = e => { const r = el.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5; el.style.transform = `rotateY(${x * 10}deg) rotateX(${-y * 10}deg) translateZ(6px)`; };
+    el.onmouseleave = () => el.style.transform = '';
+  });
+}
+
+/* =====================================================================
+   B. LOGIN
+   ===================================================================== */
+function loginShell(title, sub, inner) {
+  return `<div class="mx-auto flex min-h-screen max-w-md flex-col justify-center px-5 py-10">
+    <button id="back" class="mb-6 flex w-fit items-center gap-2 text-sm text-slate-400 hover:text-white">${ic('arrow-left', 'w-4 h-4')} Kembali</button>
+    ${demoBanner()}
+    <div class="glass glow enter rounded-3xl p-7">
+      <div class="mb-6">${brand()}</div>
+      <h2 class="text-xl font-bold text-white">${title}</h2><p class="mb-5 mt-1 text-sm text-slate-400">${sub}</p>
+      <div id="err" class="mb-4 hidden items-start gap-2 rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-200"></div>
+      ${inner}</div></div>`;
+}
+function setErr(m) { const e = $('#err'); if (!e) return; e.classList.toggle('hidden', !m); e.classList.toggle('flex', !!m); e.innerHTML = m ? ic('alert-circle', 'w-4 h-4 mt-0.5 shrink-0') + `<span>${esc(m)}</span>` : ''; icons(); }
+function busy(btn, on, label) { btn.disabled = on; btn.innerHTML = on ? `${ic('loader-2', 'w-4 h-4 spin')} Memeriksa…` : label; icons(); }
+const pwField = id => `<div class="relative"><input id="${id}" type="password" class="input pr-11" autocomplete="current-password" placeholder="••••••••"><button type="button" data-eye="${id}" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">${ic('eye', 'w-4 h-4')}</button></div>`;
+function bindEye() { app.querySelectorAll('[data-eye]').forEach(b => b.onclick = () => { const i = $('#' + b.dataset.eye); i.type = i.type === 'password' ? 'text' : 'password'; }); }
+
+function schoolAsText() { const el = $('#school'); if (el && el.tagName === 'SELECT') el.outerHTML = '<input id="school" class="input" placeholder="Ketik nama sekolah persis seperti di sheet">'; }
+
+async function viewSiswaLogin() {
+  app.innerHTML = loginShell('Login Siswa', 'Pilih sekolah lalu masukkan nomor peserta dan password.', `
+    <form id="f" class="space-y-4">
+      <div><label class="lbl">Nama sekolah</label><select id="school" class="input"><option>Memuat daftar sekolah…</option></select></div>
+      <div><label class="lbl">Nomor peserta</label><input id="nomor" class="input" inputmode="numeric" autocomplete="username" placeholder="mis. 1001"></div>
+      <div><label class="lbl">Password</label>${pwField('pass')}</div>
+      <button class="btn btn-primary w-full" id="go">Masuk</button></form>`);
+  $('#back').onclick = () => go('gate'); bindEye(); icons();
+  try {
+    const r = await api('getSchools'); S.schools = r.schools;
+    if (r.schools.length) $('#school').innerHTML = '<option value="">— Pilih sekolah —</option>' + r.schools.map(s => `<option>${esc(s)}</option>`).join('');
+    else { schoolAsText(); setErr('Daftar sekolah kosong. Ketik nama sekolah persis seperti di sheet "Siswa". Admin: periksa sheet Siswa (buka alamat /exec?debug=1 untuk diagnosa).'); }
+  } catch (e) { schoolAsText(); setErr('Daftar sekolah gagal dimuat (' + e.message + '). Ketik nama sekolah secara manual, atau muat ulang halaman.'); }
+  $('#f').onsubmit = async ev => {
+    ev.preventDefault(); setErr('');
+    const btn = $('#go'); busy(btn, true);
+    try {
+      const r = await api('loginSiswa', { school: $('#school').value, nomor: $('#nomor').value.trim(), password: $('#pass').value });
+      S.token = r.token; S.user = r.user; S.role = 'siswa'; S.exams = r.exams; saveAuth(); go('siswaDash');
+    } catch (e) { setErr(e.message); busy(btn, false, 'Masuk'); }
+  };
+}
+
+function viewAdminLogin() {
+  app.innerHTML = loginShell('Login Guru / Admin', 'Masuk dengan username atau NIP.', `
+    <form id="f" class="space-y-4">
+      <div><label class="lbl">Username / NIP</label><input id="user" class="input" autocomplete="username"></div>
+      <div><label class="lbl">Password</label>${pwField('pass')}</div>
+      <button class="btn btn-green w-full" id="go">Masuk</button></form>`);
+  $('#back').onclick = () => go('gate'); bindEye(); icons();
+  $('#f').onsubmit = async ev => {
+    ev.preventDefault(); setErr(''); const btn = $('#go'); busy(btn, true);
+    try {
+      const r = await api('loginAdmin', { username: $('#user').value.trim(), password: $('#pass').value });
+      S.token = r.token; S.user = r.user; S.role = 'admin'; S.exams = r.exams; S.schools = r.schools || []; saveAuth(); go('admin');
+    } catch (e) { setErr(e.message); busy(btn, false, 'Masuk'); }
+  };
+}
+
+/* =====================================================================
+   C. DASHBOARD SISWA
+   ===================================================================== */
+const RULES = [
+  'Ujian berjalan dalam mode layar penuh. Keluar dari layar penuh dihitung sebagai pelanggaran.',
+  'Berpindah tab, membuka aplikasi lain, atau meminimalkan jendela dihitung sebagai pelanggaran.',
+  'Klik kanan, salin, tempel, F12, dan pintasan keyboard tertentu dinonaktifkan.',
+  'Jika pelanggaran mencapai batas, ujian terkunci otomatis dan hanya proktor yang dapat membukanya.',
+  'Pelanggaran tersimpan di server. Memuat ulang halaman tidak mereset hitungan.',
+  'Setelah selesai, tekan Kirim pada formulir, lalu tekan Selesai Ujian.'
+];
+
+async function viewSiswaDash() {
+  document.body.classList.remove('in-exam');
+  const u = S.user;
+  app.innerHTML = `<div class="mx-auto min-h-screen max-w-4xl px-5 py-8">
+    <header class="mb-8 flex items-center justify-between">${brand('Siswa')}<button id="out" class="btn btn-ghost text-sm">${ic('log-out', 'w-4 h-4')} Keluar</button></header>
+    <section class="glass glow enter mb-6 flex flex-wrap items-center gap-5 rounded-3xl p-6">
+      <div class="grid h-16 w-16 place-items-center rounded-2xl bg-indigo-600 text-2xl font-extrabold text-white">${esc(u.nama.charAt(0))}</div>
+      <div class="min-w-0 flex-1"><div class="text-xl font-bold text-white">${esc(u.nama)}</div>
+        <div class="mt-1 flex flex-wrap gap-2 text-xs"><span class="badge b-indigo">${ic('hash', 'w-3 h-3')} ${esc(u.nomor)}</span><span class="badge b-slate">${ic('users', 'w-3 h-3')} ${esc(u.kelas)}</span><span class="badge b-slate">${ic('school', 'w-3 h-3')} ${esc(u.school)}</span></div></div>
+      <div class="flex items-center gap-2 text-xs text-slate-400" id="net"><span class="pulse"></span> Terhubung</div>
+    </section>
+    ${(MOBILE || !FS_OK) ? `<div class="mb-6 flex items-start gap-3 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-100">${ic('smartphone', 'w-5 h-5 shrink-0 mt-0.5')}<div>${CONFIG.ALLOW_MOBILE ? 'Anda memakai HP/tablet. Ujian tetap bisa dikerjakan, namun layar penuh mungkin tidak tersedia. Jangan berpindah aplikasi, tab, atau mengunci layar karena tetap dihitung pelanggaran. Gunakan laptop/PC bila memungkinkan.' : 'Ujian ini hanya dapat dikerjakan lewat laptop atau PC.'}</div></div>` : ''}
+    <div class="grid gap-6 md:grid-cols-5">
+      <section class="glass rounded-3xl p-6 md:col-span-3"><div class="mb-4 flex items-center justify-between"><h3 class="font-bold text-white">Ujian tersedia</h3><button id="refresh" class="btn btn-ghost px-3 py-1.5 text-xs">${ic('refresh-cw', 'w-3.5 h-3.5')} Perbarui</button></div>
+        <div id="exams" class="space-y-3"></div>
+        <label class="mt-5 flex cursor-pointer items-start gap-3 text-sm text-slate-300"><input id="agree" type="checkbox" class="mt-1 h-4 w-4 accent-indigo-500"> Saya sudah membaca aturan dan siap mengerjakan ujian dengan jujur.</label>
+        <button id="start" class="btn btn-green mt-4 w-full" disabled>${ic('play', 'w-4 h-4')} Mulai Ujian</button></section>
+      <section class="glass rounded-3xl p-6 md:col-span-2"><h3 class="mb-3 font-bold text-white">Aturan ujian</h3>
+        <ol class="space-y-3 text-sm text-slate-300">${RULES.map((r, i) => `<li class="flex gap-3"><span class="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-indigo-500/20 text-xs font-bold text-indigo-300">${i + 1}</span><span>${r}</span></li>`).join('')}</ol></section>
+    </div></div>`;
+  $('#out').onclick = () => logout();
+  $('#refresh').onclick = loadStudentExams;
+  $('#agree').onchange = syncStart;
+  $('#start').onclick = () => beginExam(S.pick);
+  S.pick = null; await loadStudentExams(); icons();
+}
+
+async function loadStudentExams() {
+  const box = $('#exams'); if (!box) return;
+  box.innerHTML = `<div class="flex items-center gap-2 text-sm text-slate-400">${ic('loader-2', 'w-4 h-4 spin')} Mengambil data terbaru…</div>`; icons();
+  try { S.exams = (await api('getExams')).exams; } catch (e) { box.innerHTML = `<div class="text-sm text-red-300">${esc(e.message)}</div>`; return; }
+  if (!S.exams.length) { box.innerHTML = `<div class="rounded-xl border border-dashed border-slate-600 p-6 text-center text-sm text-slate-400">Belum ada ujian aktif untuk sekolah Anda. Tunggu instruksi proktor lalu tekan Perbarui.</div>`; S.pick = null; syncStart(); return; }
+  if (!S.exams.find(e => e.id === S.pick)) S.pick = S.exams.length === 1 ? S.exams[0].id : null;
+  box.innerHTML = S.exams.map(e => {
+    const done = e.myStatus === 'Selesai', lock = e.myStatus === 'Terkunci', run = e.myStatus === 'Sedang Mengerjakan';
+    return `<button data-ex="${esc(e.id)}" ${done ? 'disabled' : ''} class="glow w-full rounded-2xl border border-slate-700/70 bg-slate-900/50 p-4 text-left transition ${done ? 'opacity-50' : 'hover:bg-slate-800/60'} ${S.pick === e.id ? 'ring-2 ring-indigo-500' : ''}">
+      <div class="flex items-center justify-between gap-3"><div class="font-semibold text-white">${esc(e.name)}</div>${done ? '<span class="badge b-slate">Selesai</span>' : lock ? '<span class="badge b-red">Terkunci</span>' : run ? '<span class="badge b-indigo">Dilanjutkan</span>' : '<span class="badge b-green">Aktif</span>'}</div>
+      <div class="mt-2 flex gap-4 text-xs text-slate-400"><span class="flex items-center gap-1">${ic('timer', 'w-3.5 h-3.5')} ${e.duration} menit</span><span class="flex items-center gap-1">${ic('shield-alert', 'w-3.5 h-3.5')} Maks. ${e.max} pelanggaran</span></div></button>`;
+  }).join('');
+  box.querySelectorAll('[data-ex]').forEach(b => b.onclick = () => { S.pick = b.dataset.ex; loadPickUI(); });
+  icons(); syncStart();
+}
+function loadPickUI() { document.querySelectorAll('[data-ex]').forEach(b => b.classList.toggle('ring-2', b.dataset.ex === S.pick)); document.querySelectorAll('[data-ex]').forEach(b => b.classList.toggle('ring-indigo-500', b.dataset.ex === S.pick)); syncStart(); }
+function syncStart() { const b = $('#start'); if (b) b.disabled = !(S.pick && $('#agree').checked); }
+
+/* =====================================================================
+   D. HALAMAN UJIAN + ANTI-KECURANGAN
+   ===================================================================== */
+let X = null;   // state ujian
+
+async function beginExam(examId, resume = false) {
+  if (!examId) return;
+  let noFS = false;
+  if (!resume) {
+    try { if (!FS_OK) throw new Error('nofs'); await reqFS(); }          // harus dipanggil langsung dari klik
+    catch (e) {
+      if (MOBILE && CONFIG.ALLOW_MOBILE) noFS = true;                    // HP/iPhone: lanjut tanpa layar penuh
+      else return toast(MOBILE ? 'Ujian lewat HP tidak diizinkan. Gunakan laptop atau PC.' : 'Layar penuh ditolak atau tidak didukung. Gunakan Chrome/Edge di laptop atau PC.', 'err', 6000);
+    }
+  } else noFS = !FS_OK;
+  const btn = $('#start'); if (btn) { btn.disabled = true; btn.innerHTML = `${ic('loader-2', 'w-4 h-4 spin')} Menyiapkan…`; icons(); }
+  let r;
+  try { r = await api('startExam', { examId }); }
+  catch (e) { if (inFS()) exitFS().catch(() => {}); toast(e.message, 'err', 5000);
+    if (resume) { sessionStorage.removeItem('cbt_exam'); document.body.classList.remove('in-exam'); return go('siswaDash'); } if (S.view === 'siswaDash') { loadStudentExams(); if (btn) { btn.innerHTML = `${ic('play', 'w-4 h-4')} Mulai Ujian`; icons(); } } return; }
+  sessionStorage.setItem('cbt_exam', examId);
+  X = {
+    exam: r.exam, sid: r.session.id, max: r.session.max, v: r.session.violations, state: 'run', link: r.exam.link || '',
+    offset: r.session.serverNow - Date.now(), endsAt: r.session.endsAt, lastV: 0, pending: [], off: [], timers: [], resumed: resume, noFS
+  };
+  document.body.classList.add('in-exam'); clearTimers();
+  renderExam();
+  attachGuards();
+  if (r.session.status === 'Terkunci') showLockout('cheat');
+  else {
+    if (!X.noFS && !inFS()) showPause();
+    if (noFS && !resume) toast('Mode HP: tanpa layar penuh. Pindah aplikasi/tab tetap dihitung pelanggaran.', 'info', 6000);
+    if (resume) violation('reload', 'Halaman dimuat ulang saat ujian');
+  }
+  X.timers.push(setInterval(tick, 500));
+  X.timers.push(setInterval(heartbeat, CONFIG.HEARTBEAT_MS));
+  X.timers.push(setInterval(() => { if (X.state === 'locked') heartbeat(); }, CONFIG.LOCKED_POLL_MS));
+}
+
+function renderExam() {
+  const u = S.user;
+  app.innerHTML = `<div class="flex h-full flex-col bg-slate-950 noselect">
+    <header class="z-10 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-b border-slate-700/60 bg-slate-900/95 px-3 py-2 backdrop-blur sm:gap-x-4 sm:px-4 sm:py-2.5">
+      <div class="min-w-0 flex-1"><div class="truncate text-sm font-bold text-white">${esc(X.exam.name)}</div><div class="truncate text-xs text-slate-400">${esc(X.exam.school)} · ${esc(u.nama)} · ${esc(u.kelas)}</div></div>
+      <div id="conn" class="flex items-center gap-2 text-xs text-slate-400"><span class="pulse"></span><span class="hidden sm:inline">Terhubung</span></div>
+      <div id="vbadge" class="badge b-green px-3 py-1.5 text-xs">${ic('shield-alert', 'w-3.5 h-3.5')} Pelanggaran: <span id="vn">${X.v}</span> / ${X.max}</div>
+      <div id="timer" class="flex items-center gap-2 rounded-xl bg-slate-800 px-2.5 py-1 font-mono text-base font-bold tabular-nums text-white sm:px-3 sm:py-1.5 sm:text-lg">${ic('timer', 'w-4 h-4')}<span id="tv">--:--</span></div>
+      <button id="finish" class="btn btn-red px-4 py-2 text-sm">${ic('flag', 'w-4 h-4')} <span class="hidden sm:inline">Selesai Ujian</span><span class="sm:hidden">Selesai</span></button>
+    </header>
+    <main class="relative flex-1 bg-white">${X.link ? `<iframe id="frm" title="Formulir ujian" class="absolute inset-0 h-full w-full border-0" src="${esc(X.link)}" referrerpolicy="no-referrer" allow="fullscreen">Memuat…</iframe>` : ''}</main></div>`;
+  $('#finish').onclick = confirmFinish; icons(); tick();
+}
+
+function tick() {
+  if (!X || X.state !== 'run') return;
+  const left = (X.endsAt - (Date.now() + X.offset)) / 1000;
+  const tv = $('#tv'); if (tv) tv.textContent = fmtTime(left);
+  const t = $('#timer'); if (t) t.classList.toggle('blink-red', left < 300);
+  if (left <= 0) timeUp();
+}
+function updBadge() {
+  const b = $('#vbadge'); if (!b) return; $('#vn').textContent = X.v;
+  const r = X.v / X.max; b.className = 'badge px-3 py-1.5 text-xs ' + (r >= 1 ? 'b-red' : r >= .5 ? 'b-red' : X.v ? 'b-indigo' : 'b-green');
+}
+function setConn(ok) {
+  S.online = ok; const c = $('#conn'); if (c) { c.querySelector('.pulse').style.setProperty('--c', ok ? '#10B981' : '#EF4444'); c.querySelector('span:last-child').textContent = ok ? 'Terhubung' : 'Terputus — mencoba lagi'; }
+}
+
+/* ---- sinkronisasi server ---- */
+function applySession(s) {
+  if (!X || !s) return;
+  X.v = s.violations; X.max = s.max; X.endsAt = s.endsAt; X.offset = s.serverNow - Date.now(); updBadge();
+  if (s.status === 'Terkunci' && X.state === 'run') showLockout('cheat');
+  else if (s.status === 'Selesai' && X.state !== 'done') { s.note === 'Waktu habis' ? showLockout('time') : endExam(); }
+  else if (s.status === 'Sedang Mengerjakan' && X.state === 'locked') resumeAfterUnlock();
+}
+async function heartbeat() {
+  if (!X || X.state === 'done') return;
+  try {
+    await flushPending();
+    const r = await api('heartbeat', { sessionId: X.sid, wantLink: X.state === 'locked' });
+    setConn(true);
+    if (r.link) X.link = r.link;
+    applySession(r.session);
+  } catch (e) { setConn(false); }
+}
+async function flushPending() {
+  while (X.pending.length) { const p = X.pending[0]; const r = await api('logViolation', { sessionId: X.sid, ...p }); X.pending.shift(); applySession(r.session); }
+}
+
+/* ---- pelanggaran ---- */
+function violation(type, label) {
+  if (!X || X.state !== 'run') return;
+  const now = Date.now(); if (now - X.lastV < 1500) return; X.lastV = now;   // cegah hitung ganda (blur + visibilitychange)
+  X.v++; updBadge();
+  const n = X.v, lock = n >= X.max;
+  api('logViolation', { sessionId: X.sid, type, detail: label }).then(r => { setConn(true); applySession(r.session); }).catch(() => { setConn(false); X.pending.push({ type, detail: label }); });
+  if (lock) return showLockout('cheat');
+  showWarn(`Peringatan! Anda meninggalkan halaman ujian (Pelanggaran ke-${n} dari ${X.max})`, label);
+}
+function showWarn(text, why) {
+  const L = $('#layer'); $('#warn')?.remove();
+  const el = document.createElement('div'); el.id = 'warn';
+  el.className = 'pointer-events-auto fixed inset-0 z-[95] flex items-center justify-center bg-red-950/70 p-4 backdrop-blur-sm';
+  el.innerHTML = `<div class="glass modal-in shake danger-glow w-full max-w-md rounded-2xl p-6 text-center"><div class="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full bg-red-500/20 text-red-300">${ic('siren', 'w-7 h-7')}</div>
+    <h3 class="text-lg font-extrabold text-red-200">${esc(text)}</h3><p class="mt-2 text-sm text-slate-300">Penyebab: ${esc(why)}. Pelanggaran dicatat dan dapat dilihat oleh pengawas.</p>
+    <button class="btn btn-red mt-5 w-full" id="warnok">Saya mengerti</button></div>`;
+  L.appendChild(el); icons(); $('#warnok').onclick = () => el.remove();
+}
+function showPause() {
+  if (!X || X.noFS || X.state !== 'run' || $('#pause')) return;
+  const el = document.createElement('div'); el.id = 'pause';
+  el.className = 'pointer-events-auto fixed inset-0 z-[88] flex items-center justify-center bg-slate-950 p-6 text-center';
+  el.innerHTML = `<div class="max-w-md"><div class="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-2xl bg-amber-500/15 text-amber-300">${ic('maximize', 'w-8 h-8')}</div>
+    <h2 class="text-2xl font-extrabold text-white">Kembali ke layar penuh</h2><p class="mt-2 text-sm text-slate-400">Soal disembunyikan sampai Anda masuk kembali ke mode layar penuh. Waktu ujian tetap berjalan.</p>
+    <button class="btn btn-primary mt-6" id="fsback">${ic('maximize', 'w-4 h-4')} Lanjutkan ujian</button></div>`;
+  $('#layer').appendChild(el); icons();
+  $('#fsback').onclick = async () => { try { await reqFS(); el.remove(); } catch (e) { toast('Layar penuh ditolak browser.', 'err'); } };
+}
+
+/* ---- penjaga (event listener) ---- */
+function attachGuards() {
+  const on = (t, ev, fn, o) => { t.addEventListener(ev, fn, o); X.off.push(() => t.removeEventListener(ev, fn, o)); };
+  on(document, 'visibilitychange', () => { if (document.hidden) violation('tab', 'Berpindah tab / meminimalkan jendela'); });
+  on(window, 'blur', () => setTimeout(() => {
+    const a = document.activeElement;
+    if (a && a.tagName === 'IFRAME') return;            // klik di dalam Google Form = fokus pindah ke iframe, bukan pelanggaran
+    violation('blur', 'Jendela kehilangan fokus');
+  }, 150));
+  const fsch = () => {
+    if (!X || X.noFS) return;
+    if (!inFS()) { if (X.state === 'run') { showPause(); violation('fullscreen', 'Keluar dari layar penuh'); } }
+    else $('#pause')?.remove();
+  };
+  on(document, 'fullscreenchange', fsch); on(document, 'webkitfullscreenchange', fsch);
+  on(document, 'contextmenu', e => { e.preventDefault(); toast('Klik kanan dinonaktifkan.', 'err', 1800); });
+  ['copy', 'cut', 'paste', 'dragstart', 'selectstart'].forEach(ev => on(document, ev, e => e.preventDefault()));
+  on(window, 'keydown', e => {
+    const k = (e.key || '').toLowerCase(), c = e.ctrlKey || e.metaKey;
+    const bad = k === 'f12' || k === 'f11' || k === 'f5' || (c && e.shiftKey && ['i', 'j', 'c', 'k'].includes(k)) || (c && ['u', 's', 'p', 'c', 'v', 'x', 'r', 'w', 'n', 't'].includes(k)) || (e.altKey && ['tab', 'f4', 'arrowleft'].includes(k));
+    if (bad) { e.preventDefault(); e.stopPropagation(); toast('Pintasan keyboard ini dinonaktifkan selama ujian.', 'err', 1800); return; }
+    if (k === 'meta' || k === 'os') violation('key', 'Menekan tombol Windows/Command');
+  }, true);
+  on(window, 'keyup', e => {
+    if ((e.key || '') === 'PrintScreen') { navigator.clipboard?.writeText('').catch(() => {}); violation('screenshot', 'Menekan PrintScreen'); }
+  });
+  on(window, 'beforeunload', e => { if (X && X.state === 'run') { e.preventDefault(); e.returnValue = ''; } });
+  on(window, 'offline', () => setConn(false));
+  on(window, 'online', () => { setConn(true); heartbeat(); });
+}
+function cleanupExam() { if (!X) return; X.off.forEach(f => f()); X.timers.forEach(clearInterval); X = null; }
+
+/* ---- lockout / selesai ---- */
+function showLockout(kind) {
+  if (!X) return; X.state = kind === 'time' ? 'done' : 'locked';
+  $('#frm')?.remove(); $('#pause')?.remove(); $('#warn')?.remove(); $('#lockout')?.remove(); X.link = '';
+  if (kind === 'time') { X.timers.forEach(clearInterval); X.timers = []; api('finishExam', { sessionId: X.sid, reason: 'timeout' }).catch(() => {}); sessionStorage.removeItem('cbt_exam'); if (inFS()) exitFS().catch(() => {}); }
+  const cheat = kind === 'cheat';
+  const el = document.createElement('div'); el.id = 'lockout';
+  el.className = 'pointer-events-auto fixed inset-0 z-[99] flex items-center justify-center p-6 text-center ' + (cheat ? 'bg-red-950' : 'bg-slate-950');
+  el.innerHTML = `<div class="enter max-w-lg"><div class="mx-auto mb-6 grid h-24 w-24 place-items-center rounded-full ${cheat ? 'bg-red-500/20 text-red-300 danger-glow' : 'bg-amber-500/15 text-amber-300'}">${ic(cheat ? 'lock' : 'hourglass', 'w-12 h-12')}</div>
+    <h1 class="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">${cheat ? 'UJIAN TERKUNCI!' : 'WAKTU HABIS'}</h1>
+    <p class="mt-4 text-base leading-relaxed text-slate-200">${cheat ? 'Anda telah melebihi batas kecurangan yang diizinkan. Silakan hubungi proktor/pengawas ujian.' : 'Waktu ujian Anda telah berakhir. Jawaban yang sudah Anda kirim lewat formulir tersimpan.'}</p>
+    ${cheat ? `<div class="mt-5 inline-flex items-center gap-2 rounded-full bg-black/30 px-4 py-2 text-xs text-red-200"><span class="pulse" style="--c:#F87171"></span> Menunggu proktor… halaman ini akan terbuka otomatis jika kunci dilepas</div>` : ''}
+    <div class="mt-8"><button id="lockout-out" class="btn btn-ghost">${ic('log-out', 'w-4 h-4')} Keluar</button></div></div>`;
+  $('#layer').appendChild(el); icons(); $('#lockout-out').onclick = () => logout(true);
+}
+async function resumeAfterUnlock() {
+  try { const r = await api('heartbeat', { sessionId: X.sid, wantLink: true }); X.link = r.link || ''; } catch (e) { return; }
+  $('#lockout')?.remove(); X.state = 'run'; X.lastV = Date.now() + 3000; renderExam();
+  toast('Proktor membuka kunci ujian. Silakan lanjutkan.', 'ok', 5000);
+  if (!inFS()) showPause();
+}
+function confirmFinish() {
+  if (!X || X.state !== 'run') return;
+  modal({ title: 'Akhiri ujian?', icon: 'flag', tone: 'red', body: 'Pastikan Anda sudah menekan tombol <b>Kirim</b> pada formulir. Setelah diakhiri, Anda tidak dapat masuk kembali.',
+    actions: [{ label: 'Kembali ke soal', cls: 'btn-ghost' }, { label: 'Ya, akhiri ujian', cls: 'btn-red', fn: async () => { try { await api('finishExam', { sessionId: X.sid }); } catch (e) { toast(e.message, 'err'); return; } endExam(); } }] });
+}
+function endExam() {
+  if (!X) return; X.state = 'done'; X.timers.forEach(clearInterval); X.timers = []; sessionStorage.removeItem('cbt_exam');
+  if (inFS()) exitFS().catch(() => {});
+  $('#frm')?.remove(); $('#pause')?.remove();
+  const el = document.createElement('div'); el.id = 'lockout'; el.className = 'pointer-events-auto fixed inset-0 z-[99] flex items-center justify-center bg-slate-950 p-6 text-center';
+  el.innerHTML = `<div class="enter max-w-md"><div class="mx-auto mb-6 grid h-24 w-24 place-items-center rounded-full bg-emerald-500/15 text-emerald-300">${ic('check-circle-2', 'w-12 h-12')}</div>
+    <h1 class="text-3xl font-extrabold text-white">Ujian selesai</h1><p class="mt-3 text-slate-300">Terima kasih, ${esc(S.user.nama)}. Pengerjaan Anda telah dicatat.</p>
+    <button id="lockout-out" class="btn btn-green mt-8">${ic('log-out', 'w-4 h-4')} Keluar</button></div>`;
+  $('#layer').appendChild(el); icons(); $('#lockout-out').onclick = () => logout(true);
+}
+function timeUp() { showLockout('time'); }
+
+/* =====================================================================
+   E. DASHBOARD ADMIN
+   ===================================================================== */
+const A = { tab: 'exam', edit: null, filter: '', sessions: [], logs: [] };
+
+function viewAdmin() {
+  clearTimers(); document.body.classList.remove('in-exam');
+  const u = S.user;
+  app.innerHTML = `<div class="mx-auto min-h-screen max-w-6xl px-5 py-6">
+    <header class="mb-6 flex flex-wrap items-center justify-between gap-3">${brand('Admin')}
+      <div class="flex items-center gap-3"><div class="text-right text-xs"><div class="font-bold text-white">${esc(u.nama)}</div><div class="text-slate-400">${esc(u.school)}</div></div><button id="out" class="btn btn-ghost text-sm">${ic('log-out', 'w-4 h-4')} Keluar</button></div></header>
+    <nav class="mb-6 flex gap-2 overflow-x-auto">${[['exam', 'settings-2', 'Pengaturan ujian'], ['monitor', 'activity', 'Monitoring real-time'], ['log', 'scroll-text', 'Log pelanggaran']].map(t => `<button data-tab="${t[0]}" class="btn ${A.tab === t[0] ? 'btn-primary' : 'btn-ghost'} whitespace-nowrap text-sm">${ic(t[1], 'w-4 h-4')} ${t[2]}</button>`).join('')}</nav>
+    <div id="panel" class="enter"></div></div>`;
+  $('#out').onclick = () => logout();
+  app.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { A.tab = b.dataset.tab; viewAdmin(); icons(); });
+  ({ exam: panelExam, monitor: panelMonitor, log: panelLog })[A.tab]();
+}
+
+/* ---- Pengaturan ujian ---- */
+function panelExam() {
+  const u = S.user, e = A.edit || { id: '', school: u.wildcard ? '' : u.school, name: '', link: '', max: 3, duration: 90, status: 'Aktif' };
+  $('#panel').innerHTML = `<div class="grid gap-6 lg:grid-cols-5">
+    <form id="f" class="glass glow rounded-3xl p-6 lg:col-span-2"><h3 class="mb-4 flex items-center gap-2 font-bold text-white">${ic(e.id ? 'pencil' : 'plus-circle', 'w-5 h-5 text-indigo-300')} ${e.id ? 'Ubah ujian' : 'Ujian baru'}</h3>
+      <div id="err" class="mb-3 hidden items-start gap-2 rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-200"></div>
+      <div class="space-y-3.5">
+        <div><label class="lbl">Nama sekolah</label><input id="e_school" list="sch" class="input" value="${esc(e.school)}" ${u.wildcard ? '' : 'readonly'}><datalist id="sch">${S.schools.map(s => `<option value="${esc(s)}">`).join('')}</datalist></div>
+        <div><label class="lbl">Nama ujian</label><input id="e_name" class="input" placeholder="PAS Informatika Kelas 12" value="${esc(e.name)}"></div>
+        <div><label class="lbl">Link Google Form (URL atau kode iframe)</label><textarea id="e_link" rows="2" class="input" placeholder="https://docs.google.com/forms/d/e/…/viewform">${esc(e.link)}</textarea></div>
+        <div class="grid grid-cols-2 gap-3"><div><label class="lbl">Batas pelanggaran</label><input id="e_max" type="number" min="1" max="50" class="input" value="${e.max}"></div><div><label class="lbl">Durasi (menit)</label><input id="e_dur" type="number" min="1" max="600" class="input" value="${e.duration}"></div></div>
+        <div><label class="lbl">Status</label><select id="e_status" class="input"><option ${e.status === 'Aktif' ? 'selected' : ''}>Aktif</option><option ${e.status === 'Nonaktif' ? 'selected' : ''}>Nonaktif</option></select></div>
+      </div>
+      <div class="mt-5 flex gap-2"><button class="btn btn-primary flex-1" id="save">${ic('save', 'w-4 h-4')} Simpan & sinkronkan</button>${e.id ? `<button type="button" id="cancel" class="btn btn-ghost">Batal</button>` : ''}</div>
+      <p class="mt-3 text-xs text-slate-500">Perubahan langsung ditulis ke sheet “Pengaturan Ujian”. Pastikan Google Form tidak mewajibkan login dan tidak membatasi satu respons.</p></form>
+    <section class="glass rounded-3xl p-6 lg:col-span-3"><div class="mb-4 flex items-center justify-between"><h3 class="font-bold text-white">Daftar ujian</h3><button id="rl" class="btn btn-ghost px-3 py-1.5 text-xs">${ic('refresh-cw', 'w-3.5 h-3.5')} Muat ulang</button></div>
+      <div class="overflow-x-auto"><table class="tbl"><thead><tr><th>Sekolah</th><th>Ujian</th><th>Batas</th><th>Durasi</th><th>Status</th><th></th></tr></thead><tbody id="exrows"></tbody></table></div></section></div>`;
+  drawExamRows(); icons();
+  $('#cancel') && ($('#cancel').onclick = () => { A.edit = null; panelExam(); icons(); });
+  $('#rl').onclick = async () => { try { S.exams = (await api('getExams')).exams; drawExamRows(); icons(); toast('Data dimuat ulang dari Google Sheets.', 'ok'); } catch (e) { toast(e.message, 'err'); } };
+  $('#f').onsubmit = async ev => {
+    ev.preventDefault(); setErr(''); const b = $('#save'); b.disabled = true;
+    const exam = { id: e.id, school: $('#e_school').value.trim(), name: $('#e_name').value.trim(), link: $('#e_link').value.trim(), max: $('#e_max').value, duration: $('#e_dur').value, status: $('#e_status').value };
+    try { const r = await api('saveExam', { exam }); S.exams = r.exams; A.edit = null; toast('Tersimpan & tersinkron ke Google Sheets.', 'ok'); panelExam(); icons(); }
+    catch (er) { setErr(er.message); b.disabled = false; }
+  };
+}
+function drawExamRows() {
+  const tb = $('#exrows'); if (!tb) return;
+  tb.innerHTML = S.exams.length ? S.exams.map(e => `<tr><td>${esc(e.school)}</td><td><div class="font-semibold text-white">${esc(e.name)}</div><div class="text-xs text-slate-500">${esc(e.id)}</div></td><td>${e.max}×</td><td>${e.duration}′</td>
+    <td><span class="badge ${e.status === 'Aktif' ? 'b-green' : 'b-slate'}">${e.status}</span></td>
+    <td class="whitespace-nowrap text-right"><button data-edit="${esc(e.id)}" class="btn btn-ghost px-2.5 py-1.5 text-xs">${ic('pencil', 'w-3.5 h-3.5')}</button> <button data-del="${esc(e.id)}" class="btn btn-ghost px-2.5 py-1.5 text-xs text-red-300">${ic('trash-2', 'w-3.5 h-3.5')}</button></td></tr>`).join('')
+    : `<tr><td colspan="6" class="py-8 text-center text-slate-500">Belum ada ujian. Buat ujian pertama di formulir sebelah kiri.</td></tr>`;
+  tb.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => { A.edit = S.exams.find(e => e.id === b.dataset.edit); panelExam(); icons(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+  tb.querySelectorAll('[data-del]').forEach(b => b.onclick = () => {
+    const ex = S.exams.find(e => e.id === b.dataset.del);
+    modal({ title: 'Hapus ujian?', icon: 'trash-2', tone: 'red', body: `“${esc(ex.name)}” akan dihapus dari Google Sheets. Data sesi & log tetap tersimpan.`,
+      actions: [{ label: 'Batal' }, { label: 'Hapus', cls: 'btn-red', fn: async () => { try { S.exams = (await api('deleteExam', { id: ex.id })).exams; drawExamRows(); icons(); toast('Ujian dihapus.', 'ok'); } catch (e) { toast(e.message, 'err'); } } }] });
+  });
+}
+
+/* ---- Monitoring ---- */
+function panelMonitor() {
+  $('#panel').innerHTML = `<div class="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4" id="stats"></div>
+    <section class="glass rounded-3xl p-6"><div class="mb-4 flex flex-wrap items-center justify-between gap-3"><h3 class="flex items-center gap-2 font-bold text-white"><span class="pulse"></span> Monitoring real-time</h3>
+      <div class="flex gap-2"><select id="flt" class="input !w-auto !py-2 text-sm"><option value="">Semua ujian</option>${S.exams.map(e => `<option value="${esc(e.id)}" ${A.filter === e.id ? 'selected' : ''}>${esc(e.name)} — ${esc(e.school)}</option>`).join('')}</select>
+      <button id="unlockAll" class="btn btn-green px-3 text-xs">${ic('lock-open', 'w-3.5 h-3.5')} Buka semua kunci</button><button id="rl" class="btn btn-ghost px-3 text-xs">${ic('refresh-cw', 'w-3.5 h-3.5')}</button></div></div>
+    <div class="overflow-x-auto"><table class="tbl"><thead><tr><th>Siswa</th><th>Kelas</th><th>Ujian</th><th>Pelanggaran</th><th>Status</th><th>Aktif terakhir</th><th>Sisa waktu</th><th></th></tr></thead><tbody id="mrows"></tbody></table></div></section>`;
+  $('#flt').onchange = e => { A.filter = e.target.value; loadMonitor(); };
+  $('#rl').onclick = loadMonitor; $('#unlockAll').onclick = () => unlockModal({ all: true }); loadMonitor(); icons();
+  timers.push(setInterval(loadMonitor, CONFIG.MONITOR_MS));
+}
+async function loadMonitor() {
+  try { const r = await api('getMonitor', { examId: A.filter || undefined }); A.sessions = r.sessions; A.serverNow = r.serverNow; drawMonitor(); } catch (e) { toast(e.message, 'err'); }
+}
+function drawMonitor() {
+  const L = A.sessions, tb = $('#mrows'); if (!tb) return;
+  const c = { run: L.filter(s => s.status === 'Sedang Mengerjakan').length, lock: L.filter(s => s.status === 'Terkunci').length, done: L.filter(s => s.status === 'Selesai').length };
+  $('#stats').innerHTML = [['Total peserta', L.length, 'users', 'text-slate-200'], ['Mengerjakan', c.run, 'pencil-line', 'text-indigo-300'], ['Terkunci', c.lock, 'lock', 'text-red-300'], ['Selesai', c.done, 'check-circle-2', 'text-emerald-300']]
+    .map(x => `<div class="glass rounded-2xl p-4"><div class="flex items-center gap-2 text-xs text-slate-400">${ic(x[2], 'w-4 h-4')} ${x[0]}</div><div class="mt-1 text-3xl font-extrabold ${x[3]}">${x[1]}</div></div>`).join('');
+  tb.innerHTML = L.length ? L.map(s => {
+    const b = s.status === 'Terkunci' ? 'b-red' : s.status === 'Selesai' ? 'b-green' : 'b-indigo';
+    return `<tr><td><div class="flex items-center gap-2"><span class="pulse" style="--c:${s.online ? '#10B981' : '#64748B'}"></span><div><div class="font-semibold text-white">${esc(s.nama)}</div><div class="text-xs text-slate-500">${esc(s.nomor)}${s.school ? ' · ' + esc(s.school) : ''}</div></div></div></td>
+      <td>${esc(s.kelas)}</td><td class="max-w-[12rem] truncate">${esc(s.examName)}</td><td><span class="badge ${s.violations ? 'b-red' : 'b-slate'}">${s.violations}</span></td>
+      <td><span class="badge ${b}">${esc(s.status)}</span>${s.note ? `<div class="mt-0.5 max-w-[14rem] truncate text-[11px] text-slate-500" title="${esc(s.note)}">${esc(s.note)}</div>` : ''}</td><td class="text-slate-400">${fmtClock(s.last)}</td><td class="whitespace-nowrap tabular-nums ${s.end - A.serverNow <= 0 ? 'text-red-300' : 'text-slate-300'}">${remain(s)}</td>
+      <td class="whitespace-nowrap text-right">${s.status !== 'Sedang Mengerjakan' ? `<button data-op="unlock" data-id="${s.id}" class="btn ${s.status === 'Terkunci' ? 'btn-green' : 'btn-ghost'} px-2.5 py-1.5 text-xs">${ic('lock-open', 'w-3.5 h-3.5')} ${s.status === 'Terkunci' ? 'Buka kunci' : 'Buka lagi'}</button>` : ''}
+        ${s.status === 'Sedang Mengerjakan' ? `<button data-op="lock" data-id="${s.id}" class="btn btn-ghost px-2.5 py-1.5 text-xs text-red-300">${ic('lock', 'w-3.5 h-3.5')}</button><button data-op="finish" data-id="${s.id}" class="btn btn-ghost px-2.5 py-1.5 text-xs">${ic('flag', 'w-3.5 h-3.5')}</button>` : ''}
+        <button data-log="${s.id}" class="btn btn-ghost px-2.5 py-1.5 text-xs" title="Lihat log">${ic('scroll-text', 'w-3.5 h-3.5')}</button></td></tr>`;
+  }).join('') : `<tr><td colspan="8" class="py-10 text-center text-slate-500">Belum ada siswa yang memulai ujian.</td></tr>`;
+  tb.querySelectorAll('[data-op]').forEach(b => b.onclick = async () => {
+    if (b.dataset.op === 'unlock') { const s = A.sessions.find(x => x.id === b.dataset.id); return unlockModal({ id: s.id, nama: s.nama }); }
+    const names = { lock: 'Kunci', finish: 'Selesaikan' };
+    try { await api('resetSession', { sessionId: b.dataset.id, op: b.dataset.op }); toast(names[b.dataset.op] + ' berhasil.', 'ok'); loadMonitor(); } catch (e) { toast(e.message, 'err'); }
+  });
+  tb.querySelectorAll('[data-log]').forEach(b => b.onclick = () => { A.tab = 'log'; A.logSid = b.dataset.log; viewAdmin(); icons(); });
+  icons();
+}
+
+function remain(s) {
+  if (s.status === 'Selesai') return '-';
+  const left = (s.end - (A.serverNow || Date.now())) / 1000;
+  return left <= 0 ? 'Habis' : fmtTime(left);
+}
+function unlockModal({ id, nama, all }) {
+  modal({
+    title: all ? 'Buka semua kunci?' : 'Buka kunci ' + nama + '?', icon: 'lock-open', tone: 'green',
+    body: `<div class="mt-3 space-y-3"><div><label class="lbl">Tambah waktu (menit)</label><input id="u_extra" type="number" min="0" max="240" value="0" class="input"></div>
+      <label class="flex cursor-pointer items-start gap-2 text-sm"><input id="u_reset" type="checkbox" checked class="mt-1 h-4 w-4 accent-emerald-500"> Reset hitungan pelanggaran ke 0</label>
+      <p class="text-xs text-slate-400">Jika tidak direset, siswa hanya punya 1 kesempatan lagi sebelum terkunci kembali. Jika sisa waktu siswa sudah habis, isi tambah waktu minimal 1 menit.</p></div>`,
+    actions: [{ label: 'Batal' }, { label: 'Buka kunci', cls: 'btn-green', fn: async () => {
+      const extraMinutes = +$('#u_extra').value || 0, resetViolations = $('#u_reset').checked;
+      try {
+        const r = await api('resetSession', all ? { op: 'unlockAll', examId: A.filter || undefined, extraMinutes, resetViolations } : { op: 'unlock', sessionId: id, extraMinutes, resetViolations });
+        toast(all ? r.unlocked + ' siswa dibuka kuncinya' + (r.skipped ? ', ' + r.skipped + ' dilewati (waktu habis, tambah menit)' : '') + '.' : 'Kunci dibuka. Layar siswa akan lanjut otomatis dalam beberapa detik.', 'ok', 6000);
+        loadMonitor();
+      } catch (e) { toast(e.message, 'err', 6000); }
+    } }]
+  });
+}
+
+/* ---- Log ---- */
+async function panelLog() {
+  $('#panel').innerHTML = `<section class="glass rounded-3xl p-6"><div class="mb-4 flex items-center justify-between"><h3 class="font-bold text-white">Log pelanggaran ${A.logSid ? '<span class="badge b-indigo ml-2">sesi ' + esc(A.logSid) + '</span>' : ''}</h3>${A.logSid ? `<button id="all" class="btn btn-ghost px-3 py-1.5 text-xs">Tampilkan semua</button>` : ''}</div>
+    <div class="overflow-x-auto"><table class="tbl"><thead><tr><th>Waktu</th><th>Siswa</th><th>Jenis</th><th>Detail</th><th>Ke-</th></tr></thead><tbody id="lrows"><tr><td colspan="5" class="py-8 text-center text-slate-500">Memuat…</td></tr></tbody></table></div></section>`;
+  $('#all') && ($('#all').onclick = () => { A.logSid = null; viewAdmin(); icons(); });
+  try {
+    const r = await api('getLogs', { sessionId: A.logSid || undefined });
+    $('#lrows').innerHTML = r.logs.length ? r.logs.map(l => `<tr><td class="whitespace-nowrap text-slate-400">${l.time ? new Date(l.time).toLocaleString('id-ID') : '-'}</td><td><div class="font-semibold text-white">${esc(l.nama)}</div><div class="text-xs text-slate-500">${esc(l.nomor)}</div></td><td><span class="badge b-red">${esc(l.type)}</span></td><td>${esc(l.detail)}</td><td>${esc(l.n)}</td></tr>`).join('')
+      : `<tr><td colspan="5" class="py-8 text-center text-slate-500">Belum ada pelanggaran tercatat.</td></tr>`;
+  } catch (e) { $('#lrows').innerHTML = `<tr><td colspan="5" class="py-8 text-center text-red-300">${esc(e.message)}</td></tr>`; }
+}
+
+/* =====================================================================
+   MODE DEMO (tanpa backend) — meniru perilaku Code.gs
+   ===================================================================== */
+async function mockApi(a, p) {
+  await sleep(220);
+  const K = 'cbt_demo';
+  const db = JSON.parse(localStorage.getItem(K) || 'null') || {
+    exams: [{ id: 'UJ-DEMO', school: 'SMA Nugraha', name: 'PAS Informatika Kelas 12', max: 3, duration: 60, status: 'Aktif',
+      link: 'data:text/html;charset=utf-8,' + encodeURIComponent('<body style="font-family:sans-serif;padding:40px;background:#f4f0ff"><h2>Formulir Demo</h2><p>Di sini Google Form Anda akan tampil.</p><p>1. Apa kepanjangan CPU?</p><input style="padding:8px;width:300px"></body>') }],
+    sessions: [], logs: []
+  };
+  const save = () => localStorage.setItem(K, JSON.stringify(db));
+  const now = Date.now();
+  const students = [{ school: 'SMA Nugraha', nomor: '1001', nama: 'Budi Santoso', kelas: 'XII IPA 1', pw: '123456' }, { school: 'SMA Nusantara', nomor: '2001', nama: 'Sari Dewi', kelas: 'XII IPS 2', pw: '123456' }];
+  const tok = p.token || S.token || '';
+  const me = () => { try { return JSON.parse(atob(tok.split('.')[1])); } catch (e) { throw new Error('Sesi login berakhir. Silakan login ulang.'); } };
+  const mk = u => 'T.' + btoa(JSON.stringify(u));
+  const st = s => ({ id: s.id, status: s.status, violations: s.violations, max: (db.exams.find(e => e.id === s.examId) || {}).max || 3, endsAt: s.end, serverNow: Date.now(), note: s.note });
+  const expire = s => { if (s.status === 'Sedang Mengerjakan' && now > s.end + 3000) { s.status = 'Selesai'; s.note = 'Waktu habis'; } };
+  const sess = id => { const s = db.sessions.find(x => x.id === id); if (!s) throw new Error('Sesi tidak ditemukan.'); expire(s); return s; };
+  const adminExams = u => db.exams.filter(e => u.wildcard || e.school === u.school);
+  let out;
+  switch (a) {
+    case 'getSchools': out = { schools: ['SMA Nugraha', 'SMA Nusantara'] }; break;
+    case 'loginSiswa': { const s = students.find(x => x.school === p.school && x.nomor === p.nomor && x.pw === p.password); if (!s) throw new Error('Nomor peserta atau password salah.');
+      const u = { role: 'siswa', school: s.school, nomor: s.nomor, nama: s.nama, kelas: s.kelas }; S.token = mk(u); out = { token: S.token, user: u, exams: [] }; break; }
+    case 'loginAdmin': { if (!(p.username === 'admin' && p.password === 'admin')) throw new Error('Username/NIP atau password salah.');
+      const u = { role: 'admin', school: 'SEMUA', nama: 'Guru Demo', username: 'admin', wildcard: true }; S.token = mk(u); out = { token: S.token, user: u, exams: db.exams, schools: ['SMA Nugraha', 'SMA Nusantara'] }; break; }
+    case 'getExams': { const u = me(); out = { exams: u.role === 'admin' ? adminExams(u) : db.exams.filter(e => e.school === u.school && e.status === 'Aktif').map(e => { const s = db.sessions.find(x => x.nomor === u.nomor && x.examId === e.id); if (s) expire(s); return { ...e, link: undefined, myStatus: s ? s.status : null }; }) }; break; }
+    case 'startExam': { const u = me(), e = db.exams.find(x => x.id === p.examId); if (!e || e.status !== 'Aktif') throw new Error('Ujian sedang tidak aktif.');
+      let s = db.sessions.find(x => x.nomor === u.nomor && x.examId === e.id);
+      if (!s) { s = { id: Math.random().toString(36).slice(2, 10), school: u.school, nomor: u.nomor, nama: u.nama, kelas: u.kelas, examId: e.id, examName: e.name, start: now, end: now + e.duration * 60000, violations: 0, status: 'Sedang Mengerjakan', last: now, note: 'Mulai' }; db.sessions.push(s); }
+      expire(s); if (s.status === 'Selesai') throw new Error('Anda sudah menyelesaikan ujian ini.'); s.last = now;
+      out = { session: st(s), exam: { id: e.id, name: e.name, school: e.school, duration: e.duration, max: e.max, link: s.status === 'Sedang Mengerjakan' ? e.link : undefined } }; break; }
+    case 'heartbeat': { const s = sess(p.sessionId); s.last = now; out = { session: st(s), link: s.status === 'Sedang Mengerjakan' && p.wantLink ? db.exams.find(e => e.id === s.examId).link : undefined }; break; }
+    case 'logViolation': { const s = sess(p.sessionId), e = db.exams.find(x => x.id === s.examId);
+      if (s.status === 'Sedang Mengerjakan') { s.violations++; db.logs.push({ time: now, sessionId: s.id, nomor: s.nomor, nama: s.nama, type: p.type, detail: p.detail, n: s.violations }); if (s.violations >= e.max) { s.status = 'Terkunci'; s.note = 'Terkunci otomatis: melebihi batas pelanggaran'; } }
+      out = { session: st(s) }; break; }
+    case 'finishExam': { const s = sess(p.sessionId); s.status = 'Selesai'; s.note = p.reason === 'timeout' ? 'Waktu habis' : 'Selesai oleh siswa'; out = { session: st(s) }; break; }
+    case 'saveExam': { me(); const e = p.exam; if (!e.school || !e.name) throw new Error('Nama sekolah dan nama ujian wajib diisi.');
+      if (!/^(https:\/\/docs\.google\.com\/forms\/|data:)/i.test((e.link.match(/src=["']([^"']+)["']/i) || [0, e.link])[1])) throw new Error('Link harus berupa Google Form (https://docs.google.com/forms/...).');
+      const row = { id: e.id || 'UJ-' + Date.now().toString(36).toUpperCase(), school: e.school, name: e.name, link: (e.link.match(/src=["']([^"']+)["']/i) || [0, e.link])[1], max: +e.max || 3, duration: +e.duration || 60, status: e.status };
+      const i = db.exams.findIndex(x => x.id === row.id); i > -1 ? db.exams[i] = row : db.exams.push(row); out = { id: row.id, exams: db.exams }; break; }
+    case 'deleteExam': db.exams = db.exams.filter(e => e.id !== p.id); out = { exams: db.exams }; break;
+    case 'getMonitor': { db.sessions.forEach(expire); out = { serverNow: now, sessions: db.sessions.filter(s => !p.examId || s.examId === p.examId).map(s => ({ ...s, online: s.status === 'Sedang Mengerjakan' && now - s.last < 60000 })).reverse() }; break; }
+    case 'resetSession': {
+      const extra = Math.max(0, +p.extraMinutes || 0), reset = p.resetViolations !== false;
+      const unlockOne = s => { const ne = Math.max(s.end, now) + extra * 60000; if (ne - now < 30000) throw new Error('Waktu ujian ' + s.nama + ' sudah habis. Isi "Tambah waktu" minimal 1 menit.');
+        const mx = (db.exams.find(e => e.id === s.examId) || {}).max || 3; s.status = 'Sedang Mengerjakan'; s.violations = reset ? 0 : Math.max(0, mx - 1); s.end = ne; s.last = now; s.note = 'Dibuka proktor'; };
+      if (p.op === 'unlockAll') { let ok = 0, sk = 0; db.sessions.forEach(s => { if (s.status !== 'Terkunci' || (p.examId && s.examId !== p.examId)) return; try { unlockOne(s); ok++; } catch (e) { sk++; } }); out = { unlocked: ok, skipped: sk }; break; }
+      const s = sess(p.sessionId);
+      if (p.op === 'unlock') unlockOne(s); else if (p.op === 'lock') { s.status = 'Terkunci'; s.note = 'Dikunci proktor'; } else { s.status = 'Selesai'; s.note = 'Diselesaikan proktor'; }
+      out = { ok: true }; break; }
+    case 'getLogs': out = { logs: db.logs.filter(l => !p.sessionId || l.sessionId === p.sessionId).slice().reverse() }; break;
+    default: throw new Error('Aksi tidak dikenal.');
+  }
+  save(); return out;
+}
+
+/* =====================================================================
+   BOOT — pulihkan login & lanjutkan ujian setelah refresh
+   ===================================================================== */
+(async function boot() {
+  try {
+    const a = JSON.parse(sessionStorage.getItem('cbt_auth') || 'null');
+    if (a && a.token) { S.token = a.token; S.user = a.user; S.role = a.role; }
+  } catch (e) {}
+  if (S.role === 'admin') return go('admin');
+  if (S.role === 'siswa') {
+    const ex = sessionStorage.getItem('cbt_exam');
+    if (ex) {      // lanjutkan ujian: perlu klik pengguna untuk layar penuh
+      app.innerHTML = `<div class="grid min-h-screen place-items-center p-6 text-center"><div class="glass glow enter max-w-md rounded-3xl p-8"><div class="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-amber-500/15 text-amber-300">${ic('rotate-cw', 'w-7 h-7')}</div>
+        <h2 class="text-xl font-bold text-white">Ujian sedang berlangsung</h2><p class="mt-2 text-sm text-slate-400">Halaman dimuat ulang. Hal ini dicatat sebagai pelanggaran. Tekan lanjutkan untuk kembali ke ujian.</p>
+        <button id="cont" class="btn btn-primary mt-6">${ic('play', 'w-4 h-4')} Lanjutkan ujian</button></div></div>`; icons();
+      $('#cont').onclick = async () => { try { await reqFS(); } catch (e) {} beginExam(ex, true); };
+      return;
+    }
+    return go('siswaDash');
+  }
+  go('gate');
+})();
+</script>
+</body>
+</html>
