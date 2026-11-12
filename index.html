@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>CBT Informatika SMA Nugraha</title>
+<title>CBT SMA NUGRAHA BANDUNG</title>
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="apple-touch-icon" href="logo.png">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,8 +20,7 @@
   html,body{height:100%}
   body{font-family:'Plus Jakarta Sans',Inter,system-ui,sans-serif;background:var(--ink);color:#E2E8F0;overflow-x:hidden}
   #app{min-height:100%}
-  body.in-exam{height:100dvh;overflow:hidden;overscroll-behavior:none}
-  body.in-exam #app{height:100dvh}
+  body.in-exam #app{height:100%}
   /* latar: grid halus + pendar */
   .bg-scene{position:fixed;inset:0;z-index:-1;background:
     radial-gradient(900px 500px at 15% -10%,rgba(79,70,229,.28),transparent 60%),
@@ -85,11 +86,10 @@
    KONFIGURASI
    ===================================================================== */
 const CONFIG = {
-  API_URL: 'https://script.google.com/macros/s/AKfycbyu6qXFncizzS1QshefokWwSmuAbkQXgFwAtC1mkvYcDmLOVRsGEvHhSVwEP2-kz0Fz/exec',            // <-- tempel URL Web App Apps Script (…/exec). Kosong = MODE DEMO (data lokal)
+  API_URL: 'https://script.google.com/macros/s/AKfycbyZMgagTJQQiXgSafqWooH3MmQlBxHuC5crSmS07eIYSoJo9wDw1BfzK-4sHJSfER4/exec',            // <-- tempel URL Web App Apps Script (…/exec). Kosong = MODE DEMO (data lokal)
   HEARTBEAT_MS: 20000,    // sinkron status ujian ke server
   LOCKED_POLL_MS: 8000,   // saat terkunci: cek apakah proktor membuka kunci
-  MONITOR_MS: 8000,       // refresh monitoring admin
-  ALLOW_MOBILE: true      // true = HP/tablet boleh ujian (tanpa layar penuh jika tidak didukung). false = wajib laptop/PC
+  MONITOR_MS: 8000        // refresh monitoring admin
 };
 
 /* =====================================================================
@@ -100,12 +100,6 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const fmtTime = s => { s = Math.max(0, Math.floor(s)); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return (h ? h + ':' : '') + String(m).padStart(2, '0') + ':' + String(x).padStart(2, '0'); };
 const fmtClock = ms => ms ? new Date(ms).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '-';
-const FSE = document.documentElement;
-const FS_OK = !!(FSE.requestFullscreen || FSE.webkitRequestFullscreen);
-const MOBILE = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Mac/i.test(navigator.platform));
-const inFS = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
-const reqFS = () => { try { const f = FSE.requestFullscreen || FSE.webkitRequestFullscreen; if (!f) return Promise.reject(new Error('nofs')); const r = f.call(FSE, { navigationUI: 'hide' }); return r && r.then ? r : Promise.resolve(); } catch (e) { return Promise.reject(e); } };
-const exitFS = () => { try { const f = document.exitFullscreen || document.webkitExitFullscreen; const r = f && f.call(document); return r && r.catch ? r : Promise.resolve(); } catch (e) { return Promise.resolve(); } };
 const icons = () => window.lucide && lucide.createIcons();
 const ic = (n, c = 'w-4 h-4') => `<i data-lucide="${n}" class="${c}"></i>`;
 
@@ -164,7 +158,7 @@ function saveAuth() { sessionStorage.setItem('cbt_auth', JSON.stringify({ token:
 function logout(silent) {
   cleanupExam(); clearTimers(); sessionStorage.clear();
   S.token = S.user = S.role = null; document.body.classList.remove('in-exam');
-  if (inFS()) exitFS().catch(() => {});
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
   $('#layer').innerHTML = ''; go('gate'); if (!silent) toast('Anda telah keluar.', 'ok');
 }
 function forceLogout(msg) { logout(true); toast(msg, 'err'); }
@@ -177,7 +171,7 @@ function go(view) { clearTimers(); S.view = view; ({ gate: viewGate, siswaLogin:
 
 function brand(sub = '') {
   return `<div class="flex items-center gap-3"><div class="grid h-11 w-11 place-items-center rounded-xl bg-indigo-600 shadow-lg shadow-indigo-600/40">${ic('shield-check', 'w-6 h-6 text-white')}</div>
-  <div><div class="text-base font-extrabold leading-tight tracking-tight text-white">CBT INFORMATIKA</div><div class="text-xs font-semibold text-slate-400">SMA NUGRAHA${sub ? ' · ' + sub : ''}</div></div></div>`;
+  <div><div class="text-base font-extrabold leading-tight tracking-tight text-white">CBT SMA NUGRAHA BANDUNG</div><div class="text-xs font-semibold text-slate-400">SMA NUGRAHA BANDUNG${sub ? ' · ' + sub : ''}</div></div></div>`;
 }
 function demoBanner() { return CONFIG.API_URL ? '' : `<div class="mx-auto mb-4 max-w-md rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-center text-xs text-amber-200">MODE DEMO — data lokal. Siswa: <b>1001</b> / <b>123456</b> · Admin: <b>admin</b> / <b>admin</b>. Isi <code>CONFIG.API_URL</code> untuk terhubung ke Google Sheets.</div>`; }
 
@@ -188,9 +182,8 @@ function viewGate() {
   document.body.classList.remove('in-exam');
   app.innerHTML = `<div class="mx-auto flex min-h-screen max-w-5xl flex-col justify-center px-5 py-10">
     <div class="enter mb-10 flex flex-col items-center text-center">
-      <div class="grid h-16 w-16 place-items-center rounded-2xl bg-indigo-600 shadow-2xl shadow-indigo-600/50">${ic('shield-check', 'w-9 h-9 text-white')}</div>
-      <h1 class="mt-5 text-3xl font-extrabold tracking-tight text-white sm:text-5xl">CBT INFORMATIKA</h1>
-      <p class="mt-1 text-lg font-semibold text-indigo-300">SMA NUGRAHA</p>
+      <h1 class="mt-5 text-3xl font-extrabold tracking-tight text-white sm:text-5xl">CBT SMA NUGRAHA BANDUNG</h1>
+      <p class="mt-1 text-lg font-semibold text-indigo-300"> </p>
       <p class="mt-3 max-w-md text-sm text-slate-400">Pilih portal untuk masuk. Ujian berjalan dalam mode layar penuh dan diawasi sistem.</p>
     </div>
     ${demoBanner()}
@@ -233,8 +226,6 @@ function busy(btn, on, label) { btn.disabled = on; btn.innerHTML = on ? `${ic('l
 const pwField = id => `<div class="relative"><input id="${id}" type="password" class="input pr-11" autocomplete="current-password" placeholder="••••••••"><button type="button" data-eye="${id}" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">${ic('eye', 'w-4 h-4')}</button></div>`;
 function bindEye() { app.querySelectorAll('[data-eye]').forEach(b => b.onclick = () => { const i = $('#' + b.dataset.eye); i.type = i.type === 'password' ? 'text' : 'password'; }); }
 
-function schoolAsText() { const el = $('#school'); if (el && el.tagName === 'SELECT') el.outerHTML = '<input id="school" class="input" placeholder="Ketik nama sekolah persis seperti di sheet">'; }
-
 async function viewSiswaLogin() {
   app.innerHTML = loginShell('Login Siswa', 'Pilih sekolah lalu masukkan nomor peserta dan password.', `
     <form id="f" class="space-y-4">
@@ -245,9 +236,8 @@ async function viewSiswaLogin() {
   $('#back').onclick = () => go('gate'); bindEye(); icons();
   try {
     const r = await api('getSchools'); S.schools = r.schools;
-    if (r.schools.length) $('#school').innerHTML = '<option value="">— Pilih sekolah —</option>' + r.schools.map(s => `<option>${esc(s)}</option>`).join('');
-    else { schoolAsText(); setErr('Daftar sekolah kosong. Ketik nama sekolah persis seperti di sheet "Siswa". Admin: periksa sheet Siswa (buka alamat /exec?debug=1 untuk diagnosa).'); }
-  } catch (e) { schoolAsText(); setErr('Daftar sekolah gagal dimuat (' + e.message + '). Ketik nama sekolah secara manual, atau muat ulang halaman.'); }
+    $('#school').innerHTML = '<option value="">— Pilih sekolah —</option>' + r.schools.map(s => `<option>${esc(s)}</option>`).join('');
+  } catch (e) { $('#school').innerHTML = '<option value="">Gagal memuat</option>'; setErr('Tidak dapat terhubung ke database: ' + e.message); }
   $('#f').onsubmit = async ev => {
     ev.preventDefault(); setErr('');
     const btn = $('#go'); busy(btn, true);
@@ -297,7 +287,6 @@ async function viewSiswaDash() {
         <div class="mt-1 flex flex-wrap gap-2 text-xs"><span class="badge b-indigo">${ic('hash', 'w-3 h-3')} ${esc(u.nomor)}</span><span class="badge b-slate">${ic('users', 'w-3 h-3')} ${esc(u.kelas)}</span><span class="badge b-slate">${ic('school', 'w-3 h-3')} ${esc(u.school)}</span></div></div>
       <div class="flex items-center gap-2 text-xs text-slate-400" id="net"><span class="pulse"></span> Terhubung</div>
     </section>
-    ${(MOBILE || !FS_OK) ? `<div class="mb-6 flex items-start gap-3 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-100">${ic('smartphone', 'w-5 h-5 shrink-0 mt-0.5')}<div>${CONFIG.ALLOW_MOBILE ? 'Anda memakai HP/tablet. Ujian tetap bisa dikerjakan, namun layar penuh mungkin tidak tersedia. Jangan berpindah aplikasi, tab, atau mengunci layar karena tetap dihitung pelanggaran. Gunakan laptop/PC bila memungkinkan.' : 'Ujian ini hanya dapat dikerjakan lewat laptop atau PC.'}</div></div>` : ''}
     <div class="grid gap-6 md:grid-cols-5">
       <section class="glass rounded-3xl p-6 md:col-span-3"><div class="mb-4 flex items-center justify-between"><h3 class="font-bold text-white">Ujian tersedia</h3><button id="refresh" class="btn btn-ghost px-3 py-1.5 text-xs">${ic('refresh-cw', 'w-3.5 h-3.5')} Perbarui</button></div>
         <div id="exams" class="space-y-3"></div>
@@ -338,31 +327,27 @@ let X = null;   // state ujian
 
 async function beginExam(examId, resume = false) {
   if (!examId) return;
-  let noFS = false;
   if (!resume) {
-    try { if (!FS_OK) throw new Error('nofs'); await reqFS(); }          // harus dipanggil langsung dari klik
-    catch (e) {
-      if (MOBILE && CONFIG.ALLOW_MOBILE) noFS = true;                    // HP/iPhone: lanjut tanpa layar penuh
-      else return toast(MOBILE ? 'Ujian lewat HP tidak diizinkan. Gunakan laptop atau PC.' : 'Layar penuh ditolak atau tidak didukung. Gunakan Chrome/Edge di laptop atau PC.', 'err', 6000);
-    }
-  } else noFS = !FS_OK;
+    if (!document.documentElement.requestFullscreen) return toast('Browser ini tidak mendukung mode layar penuh. Gunakan Chrome/Edge di laptop atau PC.', 'err', 6000);
+    try { await document.documentElement.requestFullscreen({ navigationUI: 'hide' }); }   // harus dipanggil langsung dari klik
+    catch (e) { return toast('Layar penuh ditolak oleh browser. Izinkan lalu coba lagi.', 'err', 6000); }
+  }
   const btn = $('#start'); if (btn) { btn.disabled = true; btn.innerHTML = `${ic('loader-2', 'w-4 h-4 spin')} Menyiapkan…`; icons(); }
   let r;
   try { r = await api('startExam', { examId }); }
-  catch (e) { if (inFS()) exitFS().catch(() => {}); toast(e.message, 'err', 5000);
+  catch (e) { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); toast(e.message, 'err', 5000);
     if (resume) { sessionStorage.removeItem('cbt_exam'); document.body.classList.remove('in-exam'); return go('siswaDash'); } if (S.view === 'siswaDash') { loadStudentExams(); if (btn) { btn.innerHTML = `${ic('play', 'w-4 h-4')} Mulai Ujian`; icons(); } } return; }
   sessionStorage.setItem('cbt_exam', examId);
   X = {
     exam: r.exam, sid: r.session.id, max: r.session.max, v: r.session.violations, state: 'run', link: r.exam.link || '',
-    offset: r.session.serverNow - Date.now(), endsAt: r.session.endsAt, lastV: 0, pending: [], off: [], timers: [], resumed: resume, noFS
+    offset: r.session.serverNow - Date.now(), endsAt: r.session.endsAt, lastV: 0, pending: [], off: [], timers: [], resumed: resume
   };
   document.body.classList.add('in-exam'); clearTimers();
   renderExam();
   attachGuards();
   if (r.session.status === 'Terkunci') showLockout('cheat');
   else {
-    if (!X.noFS && !inFS()) showPause();
-    if (noFS && !resume) toast('Mode HP: tanpa layar penuh. Pindah aplikasi/tab tetap dihitung pelanggaran.', 'info', 6000);
+    if (!document.fullscreenElement) showPause();
     if (resume) violation('reload', 'Halaman dimuat ulang saat ujian');
   }
   X.timers.push(setInterval(tick, 500));
@@ -373,12 +358,12 @@ async function beginExam(examId, resume = false) {
 function renderExam() {
   const u = S.user;
   app.innerHTML = `<div class="flex h-full flex-col bg-slate-950 noselect">
-    <header class="z-10 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-b border-slate-700/60 bg-slate-900/95 px-3 py-2 backdrop-blur sm:gap-x-4 sm:px-4 sm:py-2.5">
+    <header class="z-10 flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-slate-700/60 bg-slate-900/95 px-4 py-2.5 backdrop-blur">
       <div class="min-w-0 flex-1"><div class="truncate text-sm font-bold text-white">${esc(X.exam.name)}</div><div class="truncate text-xs text-slate-400">${esc(X.exam.school)} · ${esc(u.nama)} · ${esc(u.kelas)}</div></div>
-      <div id="conn" class="flex items-center gap-2 text-xs text-slate-400"><span class="pulse"></span><span class="hidden sm:inline">Terhubung</span></div>
+      <div id="conn" class="flex items-center gap-2 text-xs text-slate-400"><span class="pulse"></span><span>Terhubung</span></div>
       <div id="vbadge" class="badge b-green px-3 py-1.5 text-xs">${ic('shield-alert', 'w-3.5 h-3.5')} Pelanggaran: <span id="vn">${X.v}</span> / ${X.max}</div>
-      <div id="timer" class="flex items-center gap-2 rounded-xl bg-slate-800 px-2.5 py-1 font-mono text-base font-bold tabular-nums text-white sm:px-3 sm:py-1.5 sm:text-lg">${ic('timer', 'w-4 h-4')}<span id="tv">--:--</span></div>
-      <button id="finish" class="btn btn-red px-4 py-2 text-sm">${ic('flag', 'w-4 h-4')} <span class="hidden sm:inline">Selesai Ujian</span><span class="sm:hidden">Selesai</span></button>
+      <div id="timer" class="flex items-center gap-2 rounded-xl bg-slate-800 px-3 py-1.5 font-mono text-lg font-bold tabular-nums text-white">${ic('timer', 'w-4 h-4')}<span id="tv">--:--</span></div>
+      <button id="finish" class="btn btn-red px-4 py-2 text-sm">${ic('flag', 'w-4 h-4')} Selesai Ujian</button>
     </header>
     <main class="relative flex-1 bg-white">${X.link ? `<iframe id="frm" title="Formulir ujian" class="absolute inset-0 h-full w-full border-0" src="${esc(X.link)}" referrerpolicy="no-referrer" allow="fullscreen">Memuat…</iframe>` : ''}</main></div>`;
   $('#finish').onclick = confirmFinish; icons(); tick();
@@ -441,14 +426,14 @@ function showWarn(text, why) {
   L.appendChild(el); icons(); $('#warnok').onclick = () => el.remove();
 }
 function showPause() {
-  if (!X || X.noFS || X.state !== 'run' || $('#pause')) return;
+  if (!X || X.state !== 'run' || $('#pause')) return;
   const el = document.createElement('div'); el.id = 'pause';
   el.className = 'pointer-events-auto fixed inset-0 z-[88] flex items-center justify-center bg-slate-950 p-6 text-center';
   el.innerHTML = `<div class="max-w-md"><div class="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-2xl bg-amber-500/15 text-amber-300">${ic('maximize', 'w-8 h-8')}</div>
     <h2 class="text-2xl font-extrabold text-white">Kembali ke layar penuh</h2><p class="mt-2 text-sm text-slate-400">Soal disembunyikan sampai Anda masuk kembali ke mode layar penuh. Waktu ujian tetap berjalan.</p>
     <button class="btn btn-primary mt-6" id="fsback">${ic('maximize', 'w-4 h-4')} Lanjutkan ujian</button></div>`;
   $('#layer').appendChild(el); icons();
-  $('#fsback').onclick = async () => { try { await reqFS(); el.remove(); } catch (e) { toast('Layar penuh ditolak browser.', 'err'); } };
+  $('#fsback').onclick = async () => { try { await document.documentElement.requestFullscreen({ navigationUI: 'hide' }); el.remove(); } catch (e) { toast('Layar penuh ditolak browser.', 'err'); } };
 }
 
 /* ---- penjaga (event listener) ---- */
@@ -460,12 +445,11 @@ function attachGuards() {
     if (a && a.tagName === 'IFRAME') return;            // klik di dalam Google Form = fokus pindah ke iframe, bukan pelanggaran
     violation('blur', 'Jendela kehilangan fokus');
   }, 150));
-  const fsch = () => {
-    if (!X || X.noFS) return;
-    if (!inFS()) { if (X.state === 'run') { showPause(); violation('fullscreen', 'Keluar dari layar penuh'); } }
+  on(document, 'fullscreenchange', () => {
+    if (!X) return;
+    if (!document.fullscreenElement) { if (X.state === 'run') { showPause(); violation('fullscreen', 'Keluar dari layar penuh'); } }
     else $('#pause')?.remove();
-  };
-  on(document, 'fullscreenchange', fsch); on(document, 'webkitfullscreenchange', fsch);
+  });
   on(document, 'contextmenu', e => { e.preventDefault(); toast('Klik kanan dinonaktifkan.', 'err', 1800); });
   ['copy', 'cut', 'paste', 'dragstart', 'selectstart'].forEach(ev => on(document, ev, e => e.preventDefault()));
   on(window, 'keydown', e => {
@@ -487,7 +471,7 @@ function cleanupExam() { if (!X) return; X.off.forEach(f => f()); X.timers.forEa
 function showLockout(kind) {
   if (!X) return; X.state = kind === 'time' ? 'done' : 'locked';
   $('#frm')?.remove(); $('#pause')?.remove(); $('#warn')?.remove(); $('#lockout')?.remove(); X.link = '';
-  if (kind === 'time') { X.timers.forEach(clearInterval); X.timers = []; api('finishExam', { sessionId: X.sid, reason: 'timeout' }).catch(() => {}); sessionStorage.removeItem('cbt_exam'); if (inFS()) exitFS().catch(() => {}); }
+  if (kind === 'time') { X.timers.forEach(clearInterval); X.timers = []; api('finishExam', { sessionId: X.sid, reason: 'timeout' }).catch(() => {}); sessionStorage.removeItem('cbt_exam'); if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); }
   const cheat = kind === 'cheat';
   const el = document.createElement('div'); el.id = 'lockout';
   el.className = 'pointer-events-auto fixed inset-0 z-[99] flex items-center justify-center p-6 text-center ' + (cheat ? 'bg-red-950' : 'bg-slate-950');
@@ -502,7 +486,7 @@ async function resumeAfterUnlock() {
   try { const r = await api('heartbeat', { sessionId: X.sid, wantLink: true }); X.link = r.link || ''; } catch (e) { return; }
   $('#lockout')?.remove(); X.state = 'run'; X.lastV = Date.now() + 3000; renderExam();
   toast('Proktor membuka kunci ujian. Silakan lanjutkan.', 'ok', 5000);
-  if (!inFS()) showPause();
+  if (!document.fullscreenElement) showPause();
 }
 function confirmFinish() {
   if (!X || X.state !== 'run') return;
@@ -511,7 +495,7 @@ function confirmFinish() {
 }
 function endExam() {
   if (!X) return; X.state = 'done'; X.timers.forEach(clearInterval); X.timers = []; sessionStorage.removeItem('cbt_exam');
-  if (inFS()) exitFS().catch(() => {});
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
   $('#frm')?.remove(); $('#pause')?.remove();
   const el = document.createElement('div'); el.id = 'lockout'; el.className = 'pointer-events-auto fixed inset-0 z-[99] flex items-center justify-center bg-slate-950 p-6 text-center';
   el.innerHTML = `<div class="enter max-w-md"><div class="mx-auto mb-6 grid h-24 w-24 place-items-center rounded-full bg-emerald-500/15 text-emerald-300">${ic('check-circle-2', 'w-12 h-12')}</div>
@@ -658,13 +642,13 @@ async function mockApi(a, p) {
   await sleep(220);
   const K = 'cbt_demo';
   const db = JSON.parse(localStorage.getItem(K) || 'null') || {
-    exams: [{ id: 'UJ-DEMO', school: 'SMA Nugraha', name: 'PAS Informatika Kelas 12', max: 3, duration: 60, status: 'Aktif',
+    exams: [{ id: 'UJ-DEMO', school: 'SMA NUGRAHA BANDUNG', name: 'PAS Informatika Kelas 12', max: 3, duration: 60, status: 'Aktif',
       link: 'data:text/html;charset=utf-8,' + encodeURIComponent('<body style="font-family:sans-serif;padding:40px;background:#f4f0ff"><h2>Formulir Demo</h2><p>Di sini Google Form Anda akan tampil.</p><p>1. Apa kepanjangan CPU?</p><input style="padding:8px;width:300px"></body>') }],
     sessions: [], logs: []
   };
   const save = () => localStorage.setItem(K, JSON.stringify(db));
   const now = Date.now();
-  const students = [{ school: 'SMA Nugraha', nomor: '1001', nama: 'Budi Santoso', kelas: 'XII IPA 1', pw: '123456' }, { school: 'SMA Nusantara', nomor: '2001', nama: 'Sari Dewi', kelas: 'XII IPS 2', pw: '123456' }];
+  const students = [{ school: 'SMA NUGRAHA BANDUNG', nomor: '1001', nama: 'Budi Santoso', kelas: 'XII IPA 1', pw: '123456' }, { school: 'SMA Nusantara', nomor: '2001', nama: 'Sari Dewi', kelas: 'XII IPS 2', pw: '123456' }];
   const tok = p.token || S.token || '';
   const me = () => { try { return JSON.parse(atob(tok.split('.')[1])); } catch (e) { throw new Error('Sesi login berakhir. Silakan login ulang.'); } };
   const mk = u => 'T.' + btoa(JSON.stringify(u));
@@ -674,11 +658,11 @@ async function mockApi(a, p) {
   const adminExams = u => db.exams.filter(e => u.wildcard || e.school === u.school);
   let out;
   switch (a) {
-    case 'getSchools': out = { schools: ['SMA Nugraha', 'SMA Nusantara'] }; break;
+    case 'getSchools': out = { schools: ['SMA NUGRAHA BANDUNG', 'SMA Nusantara'] }; break;
     case 'loginSiswa': { const s = students.find(x => x.school === p.school && x.nomor === p.nomor && x.pw === p.password); if (!s) throw new Error('Nomor peserta atau password salah.');
       const u = { role: 'siswa', school: s.school, nomor: s.nomor, nama: s.nama, kelas: s.kelas }; S.token = mk(u); out = { token: S.token, user: u, exams: [] }; break; }
     case 'loginAdmin': { if (!(p.username === 'admin' && p.password === 'admin')) throw new Error('Username/NIP atau password salah.');
-      const u = { role: 'admin', school: 'SEMUA', nama: 'Guru Demo', username: 'admin', wildcard: true }; S.token = mk(u); out = { token: S.token, user: u, exams: db.exams, schools: ['SMA Nugraha', 'SMA Nusantara'] }; break; }
+      const u = { role: 'admin', school: 'SEMUA', nama: 'Guru Demo', username: 'admin', wildcard: true }; S.token = mk(u); out = { token: S.token, user: u, exams: db.exams, schools: ['SMA NUGRAHA BANDUNG', 'SMA Nusantara'] }; break; }
     case 'getExams': { const u = me(); out = { exams: u.role === 'admin' ? adminExams(u) : db.exams.filter(e => e.school === u.school && e.status === 'Aktif').map(e => { const s = db.sessions.find(x => x.nomor === u.nomor && x.examId === e.id); if (s) expire(s); return { ...e, link: undefined, myStatus: s ? s.status : null }; }) }; break; }
     case 'startExam': { const u = me(), e = db.exams.find(x => x.id === p.examId); if (!e || e.status !== 'Aktif') throw new Error('Ujian sedang tidak aktif.');
       let s = db.sessions.find(x => x.nomor === u.nomor && x.examId === e.id);
@@ -725,7 +709,7 @@ async function mockApi(a, p) {
       app.innerHTML = `<div class="grid min-h-screen place-items-center p-6 text-center"><div class="glass glow enter max-w-md rounded-3xl p-8"><div class="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-amber-500/15 text-amber-300">${ic('rotate-cw', 'w-7 h-7')}</div>
         <h2 class="text-xl font-bold text-white">Ujian sedang berlangsung</h2><p class="mt-2 text-sm text-slate-400">Halaman dimuat ulang. Hal ini dicatat sebagai pelanggaran. Tekan lanjutkan untuk kembali ke ujian.</p>
         <button id="cont" class="btn btn-primary mt-6">${ic('play', 'w-4 h-4')} Lanjutkan ujian</button></div></div>`; icons();
-      $('#cont').onclick = async () => { try { await reqFS(); } catch (e) {} beginExam(ex, true); };
+      $('#cont').onclick = async () => { try { await document.documentElement.requestFullscreen({ navigationUI: 'hide' }); } catch (e) {} beginExam(ex, true); };
       return;
     }
     return go('siswaDash');
